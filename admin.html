@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Diana Di Dolci</title>
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>" />
+  <!-- SheetJS for Excel import/export -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="navbar">
+  <div class="container">
+    <a href="./index.html" class="nav-brand">
+      <span class="brand-name">Diana Di Dolci ♡</span>
+      <span class="brand-sub">Admin</span>
+    </a>
+    <div class="nav-actions">
+      <button id="themeToggle" class="theme-btn">🌙</button>
+      <a href="./index.html" class="btn btn-outline btn-sm nav-order-btn">← Storefront</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav class="mobile-bottom-nav" aria-label="Main navigation">
+  <ul>
+    <li><a href="./index.html" id="tab-home">
+      <span class="tab-icon">🏠</span>Home
+    </a></li>
+    <li><a href="./menu.html" id="tab-menu">
+      <span class="tab-icon">🍰</span>Menu
+    </a></li>
+    <li><a href="./cart.html" id="tab-cart" style="position:relative">
+      <span class="tab-icon">🛒</span>Cart
+      <span class="tab-cart-badge cart-badge" style="display:none">0</span>
+    </a></li>
+    <li><a href="./admin.html" class="active" id="tab-admin">
+      <span class="tab-icon">⚙️</span>Admin
+    </a></li>
+  </ul>
+</nav>
+
+<!-- ═══ MOBILE ADMIN NAV (sheet slides up) ═══ -->
+<div id="mobileAdminMenu" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.4)" onclick="closeMobileMenu()">
+  <div style="position:absolute;bottom:64px;left:0;right:0;background:var(--bg-card);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:1.25rem 1rem;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .875rem"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
+      <button class="admin-nav-item" data-panel="overview"   onclick="navigate('overview');closeMobileMenu()">📊 Overview</button>
+      <button class="admin-nav-item" data-panel="orders"     onclick="navigate('orders');closeMobileMenu()">📦 Orders</button>
+      <button class="admin-nav-item" data-panel="products"   onclick="navigate('products');closeMobileMenu()">🍰 Products</button>
+      <button class="admin-nav-item" data-panel="reports"    onclick="navigate('reports');closeMobileMenu()">📈 Reports</button>
+      <button class="admin-nav-item" data-panel="backup"     onclick="navigate('backup');closeMobileMenu()">💾 Backup</button>
+      <button class="admin-nav-item" data-panel="settings"   onclick="navigate('settings');closeMobileMenu()">⚙️ Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN LAYOUT ═══ -->
+<div class="admin-layout">
+
+  <!-- ── Sidebar ───────────────────────── -->
+  <aside class="admin-sidebar">
+    <div class="admin-nav-section">Dashboard</div>
+    <button class="admin-nav-item active" data-panel="overview">📊 Overview</button>
+    <button class="admin-nav-item" data-panel="orders">📦 Orders</button>
+
+    <div class="admin-nav-section" style="margin-top:.75rem">Catalogue</div>
+    <button class="admin-nav-item" data-panel="products">🍰 Products</button>
+
+    <div class="admin-nav-section" style="margin-top:.75rem">Data</div>
+    <button class="admin-nav-item" data-panel="reports">📈 Reports</button>
+    <button class="admin-nav-item" data-panel="backup">💾 Backup &amp; Restore</button>
+    <button class="admin-nav-item" data-panel="settings">⚙️ Settings</button>
+  </aside>
+
+  <!-- ── Main Content ───────────────────── -->
+  <main class="admin-main">
+
+    <!-- ════════ OVERVIEW ════════ -->
+    <div class="admin-panel active" id="panel-overview">
+      <h2 class="admin-page-title">Dashboard Overview</h2>
+
+      <div class="grid-4 mb-3" id="statsGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="overviewCharts">
+        <div class="card">
+          <div class="card-title">Orders by Status</div>
+          <div id="statusChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Revenue by Category</div>
+          <div id="categoryChart"></div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="flex-between mb-2">
+          <div class="card-title" style="margin-bottom:0">Recent Orders</div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('orders')">View All →</button>
+        </div>
+        <div id="recentOrders"></div>
+      </div>
+    </div>
+
+    <!-- ════════ ORDERS ════════ -->
+    <div class="admin-panel" id="panel-orders">
+      <h2 class="admin-page-title">Orders Management</h2>
+
+      <div class="filter-bar mb-3">
+        <div class="search-wrap" style="flex:1;min-width:200px">
+          <span class="search-icon">🔍</span>
+          <input id="orderSearch" type="search" class="form-control search-input" placeholder="Search by order number, name…" />
+        </div>
+        <select id="orderStatusFilter" class="form-control" style="width:auto">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="preparing">Preparing</option>
+          <option value="out_for_delivery">Out for Delivery</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <input type="date" id="orderDateFrom" class="form-control" style="width:auto" title="From date" />
+        <input type="date" id="orderDateTo"   class="form-control" style="width:auto" title="To date" />
+        <button class="btn btn-outline btn-sm" onclick="exportOrders()">⬇ Export Excel</button>
+      </div>
+
+      <div id="ordersResultCount" class="text-sm text-muted mb-2"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody"></tbody>
+        </table>
+      </div>
+      <div id="ordersPagination" class="flex-center gap-2 mt-3" style="justify-content:center"></div>
+    </div>
+
+    <!-- ════════ PRODUCTS ════════ -->
+    <div class="admin-panel" id="panel-products">
+      <h2 class="admin-page-title">Products Catalogue</h2>
+
+      <div class="flex-between mb-3">
+        <div class="filter-bar" style="flex:1;margin-bottom:0;margin-right:1rem">
+          <div class="search-wrap" style="flex:1">
+            <span class="search-icon">🔍</span>
+            <input id="productSearch" type="search" class="form-control search-input" placeholder="Search products…" />
+          </div>
+          <select id="productCatFilter" class="form-control" style="width:auto">
+            <option value="">All Categories</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+      </div>
+
+      <div class="products-grid" id="adminProductsGrid"></div>
+    </div>
+
+    <!-- ════════ REPORTS ════════ -->
+    <div class="admin-panel" id="panel-reports">
+      <h2 class="admin-page-title">Reports &amp; Analytics</h2>
+
+      <div class="filter-bar mb-3">
+        <label class="text-sm font-semibold">Date Range:</label>
+        <input type="date" id="reportFrom" class="form-control" style="width:auto" />
+        <input type="date" id="reportTo"   class="form-control" style="width:auto" />
+        <button class="btn btn-primary btn-sm" onclick="renderReports()">Apply</button>
+        <button class="btn btn-outline btn-sm" onclick="setReportRange(7)">Last 7 days</button>
+        <button class="btn btn-outline btn-sm" onclick="setReportRange(30)">Last 30 days</button>
+        <button class="btn btn-outline btn-sm" onclick="setReportRange(0)">All Time</button>
+      </div>
+
+      <div class="grid-4 mb-3" id="reportStats"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+        <div class="card">
+          <div class="card-title">Orders by Status</div>
+          <div id="reportStatusBreakdown"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Revenue by Category</div>
+          <div id="reportCategoryBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex-between mb-2">
+          <div class="card-title" style="margin-bottom:0">Top Products</div>
+          <button class="btn btn-outline btn-sm" onclick="exportReport()">⬇ Export Excel</button>
+        </div>
+        <div id="topProductsTable"></div>
+      </div>
+    </div>
+
+    <!-- ════════ BACKUP ════════ -->
+    <div class="admin-panel" id="panel-backup">
+      <h2 class="admin-page-title">Backup &amp; Restore</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+
+        <div class="card">
+          <div class="card-title">📥 Export to Excel</div>
+          <p class="text-sm text-muted mb-3">Download data as <strong>.xlsx</strong> files — open directly in Excel, Google Sheets, or Numbers.</p>
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+
+            <div style="background:var(--bg-muted);border-radius:var(--radius);padding:.875rem">
+              <div class="text-xs font-semibold text-muted mb-2" style="text-transform:uppercase;letter-spacing:.08em">Orders</div>
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                <button class="btn btn-primary" onclick="exportOrdersXLSX()">
+                  📊 All Orders — Full Report (.xlsx)
+                </button>
+                <p class="text-xs text-muted" style="margin:-.25rem 0 0 .25rem">Includes: Orders summary + line items breakdown (2 sheets)</p>
+              </div>
+            </div>
+
+            <div style="background:var(--bg-muted);border-radius:var(--radius);padding:.875rem">
+              <div class="text-xs font-semibold text-muted mb-2" style="text-transform:uppercase;letter-spacing:.08em">Products</div>
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                <button class="btn btn-outline" onclick="exportProductsXLSX()">
+                  🍰 Products Catalogue (.xlsx)
+                </button>
+                <p class="text-xs text-muted" style="margin:-.25rem 0 0 .25rem">All products with name, category, price, tags</p>
+              </div>
+            </div>
+
+            <div style="background:var(--bg-muted);border-radius:var(--radius);padding:.875rem">
+              <div class="text-xs font-semibold text-muted mb-2" style="text-transform:uppercase;letter-spacing:.08em">Full Backup</div>
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                <button class="btn btn-outline" onclick="exportFull()">
+                  💾 Full Backup (.json) — for restore
+                </button>
+                <p class="text-xs text-muted" style="margin:-.25rem 0 0 .25rem">Complete backup including settings &amp; history. Use this for restore.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📤 Import from Excel</div>
+          <p class="text-sm text-muted mb-3">
+            Import <strong>products</strong> from an <strong>.xlsx</strong> file, or restore from a full <strong>.json</strong> backup.
+          </p>
+
+          <!-- Import type selector -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
+            <label style="position:relative">
+              <input type="radio" name="importType" value="products" checked style="position:absolute;opacity:0"
+                onchange="updateImportHint(this.value)" />
+              <span id="itab-products" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.75rem .5rem;border:1.5px solid var(--primary);background:var(--primary-soft);border-radius:var(--radius);cursor:pointer;font-size:.82rem;font-weight:600;color:var(--primary);text-align:center">
+                🍰 Products<span style="font-weight:400;font-size:.72rem;color:var(--text-muted)">.xlsx</span>
+              </span>
+            </label>
+            <label style="position:relative">
+              <input type="radio" name="importType" value="restore" style="position:absolute;opacity:0"
+                onchange="updateImportHint(this.value)" />
+              <span id="itab-restore" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.75rem .5rem;border:1.5px solid var(--border);background:transparent;border-radius:var(--radius);cursor:pointer;font-size:.82rem;font-weight:600;color:var(--text-muted);text-align:center">
+                💾 Full Restore<span style="font-weight:400;font-size:.72rem">.json</span>
+              </span>
+            </label>
+          </div>
+
+          <div id="importHint" class="text-xs text-muted mb-2" style="padding:.5rem .75rem;background:var(--bg-muted);border-radius:var(--radius-sm)">
+            📋 <strong>Products sheet columns:</strong> Name, Category, Price, Description, Tags, Available<br>
+            Download the template first to see the correct format.
+          </div>
+
+          <div id="importDropzone"
+            style="border:2px dashed var(--border);border-radius:var(--radius);padding:1.75rem;text-align:center;cursor:pointer;transition:all var(--transition)"
+            ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='var(--primary-soft)'"
+            ondragleave="this.style.borderColor='';this.style.background=''"
+            ondrop="handleDrop(event)">
+            <div style="font-size:2.5rem;margin-bottom:.5rem">📂</div>
+            <p class="text-sm font-semibold">Drop file here</p>
+            <p class="text-xs text-muted">.xlsx for products &nbsp;·&nbsp; .json for full restore</p>
+            <label class="btn btn-outline btn-sm mt-2" style="cursor:pointer">
+              Browse File
+              <input type="file" id="importFileInput" accept=".xlsx,.xls,.json" style="display:none"
+                onchange="handleFileImport(this.files[0])">
+            </label>
+          </div>
+
+          <button class="btn btn-ghost btn-sm w-full mt-2" onclick="downloadProductTemplate()">
+            ⬇ Download Products Template (.xlsx)
+          </button>
+        </div>
+
+        <div class="card" style="grid-column:1/-1">
+          <div class="flex-between mb-2">
+            <div class="card-title" style="margin-bottom:0">🕐 Auto-Snapshots (Version History)</div>
+            <button class="btn btn-outline btn-sm" onclick="saveManualSnapshot()">📸 Save Snapshot Now</button>
+          </div>
+          <p class="text-sm text-muted mb-2">Snapshots are created automatically after each order. Up to 10 snapshots are kept.</p>
+          <div id="snapshotsList"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════ SETTINGS ════════ -->
+    <div class="admin-panel" id="panel-settings">
+      <h2 class="admin-page-title">Bakery Settings</h2>
+      <div style="max-width:600px">
+        <div class="card mb-3">
+          <div class="card-title">General</div>
+          <form id="settingsForm">
+            <div class="form-group">
+              <label class="form-label">Bakery Name</label>
+              <input id="s-bakeryName" class="form-control" type="text" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tagline</label>
+              <input id="s-tagline" class="form-control" type="text" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Currency Symbol</label>
+                <input id="s-currency" class="form-control" type="text" maxlength="3" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delivery Fee</label>
+                <input id="s-deliveryFee" class="form-control" type="number" min="0" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Free Delivery Above</label>
+                <input id="s-freeDeliveryAbove" class="form-control" type="number" min="0" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Est. Delivery (mins)</label>
+                <input id="s-estimatedDeliveryMins" class="form-control" type="number" min="10" />
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-title">Contact &amp; Social</div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input id="s-phone" class="form-control" type="text" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp (with country code, digits only)</label>
+            <input id="s-whatsapp" class="form-control" type="text" placeholder="919876543210" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input id="s-email" class="form-control" type="email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Instagram Handle</label>
+              <input id="s-instagram" class="form-control" type="text" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">City / Address</label>
+            <input id="s-address" class="form-control" type="text" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg w-full" onclick="saveSettings()">💾 Save Settings</button>
+        <button class="btn btn-danger mt-2 w-full" onclick="resetData()">⚠️ Reset All App Data</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal-backdrop" id="orderModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="orderModalTitle">Order Details</h3>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div id="orderModalBody"></div>
+  </div>
+</div>
+
+<!-- ═══ PRODUCT MODAL ═══ -->
+<div class="modal-backdrop" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="productModalTitle">Add Product</h3>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div>
+      <input type="hidden" id="pm-id" />
+      <div class="form-group">
+        <label class="form-label">Product Name <span class="req">*</span></label>
+        <input id="pm-name" class="form-control" type="text" placeholder="e.g. Chocolate Fudge Brownie" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category <span class="req">*</span></label>
+          <select id="pm-category" class="form-control">
+            <option value="">Select category</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price (₹) <span class="req">*</span></label>
+          <input id="pm-price" class="form-control" type="number" min="0" placeholder="e.g. 450" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="pm-description" class="form-control" rows="2" placeholder="Short description of the item…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tags (comma-separated)</label>
+          <input id="pm-tags" class="form-control" type="text" placeholder="bestseller, popular, custom" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Available?</label>
+          <select id="pm-available" class="form-control">
+            <option value="true">Yes — Available</option>
+            <option value="false">No — Out of Stock</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-primary flex-1" onclick="saveProduct()">💾 Save Product</button>
+        <button id="pm-deleteBtn" class="btn btn-danger" onclick="deleteProduct()" style="display:none">🗑 Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./assets/js/core.js"></script>
+<script>
+BB.init();
+const { repos, services, utils, lookups } = BB;
+let settings = BB.storage.getSettings();
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+function navigate(panelId) {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(`panel-${panelId}`);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll(`[data-panel="${panelId}"]`).forEach(b => b.classList.add('active'));
+  // Refresh the panel
+  panelInitMap[panelId]?.();
+}
+document.querySelectorAll('.admin-nav-item[data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.panel));
+});
+
+// ─────────────────────────────────────────────
+// SHARED HELPERS
+// ─────────────────────────────────────────────
+function statusBadge(statusId) {
+  const s = lookups.orderStatuses.find(x => x.id === statusId) || { label: statusId, color:'#888', bg:'#eee' };
+  return `<span class="status-badge" style="color:${s.color};background:${s.bg}">${s.label}</span>`;
+}
+
+function barChart(data, valueKey, labelKey = 'group', maxWidth = 300) {
+  if (!data.length) return '<p class="text-muted text-sm">No data yet</p>';
+  const max = Math.max(...data.map(d => d[valueKey] || 0), 1);
+  return data.map(d => `
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+      <div style="min-width:100px;font-size:.8rem;font-weight:600;text-align:right;color:var(--text-muted)">${d[labelKey]}</div>
+      <div style="flex:1;background:var(--border);border-radius:999px;height:8px;overflow:hidden">
+        <div style="width:${(d[valueKey]/max*100).toFixed(1)}%;height:100%;background:var(--primary);border-radius:999px;transition:width .5s ease"></div>
+      </div>
+      <div style="min-width:50px;font-size:.8rem;font-weight:700;color:var(--text)">${d[valueKey]}</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+// OVERVIEW PANEL
+// ─────────────────────────────────────────────
+function initOverview() {
+  const stats = services.orders.getDashboardStats();
+  const cur   = settings.currency;
+
+  document.getElementById('statsGrid').innerHTML = [
+    { label:'Total Orders',    value: stats.total,                          icon:'📦', change:'' },
+    { label:"Today's Orders",  value: stats.todayCount,                     icon:'🛵', change:'' },
+    { label:'Total Revenue',   value: utils.formatPrice(stats.revenue,cur), icon:'💰', change:'' },
+    { label:"Today's Revenue", value: utils.formatPrice(stats.todayRevenue,cur), icon:'📈', change:'' },
+  ].map(s => `
+    <div class="stat-card">
+      <div style="font-size:1.5rem">${s.icon}</div>
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.value}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('statusChart').innerHTML =
+    barChart(stats.byStatus.map(x => ({ ...x, label: x.group })), 'count', 'group');
+
+  const catRevData = stats.byCategory.map(x => ({
+    group: x.group,
+    revenue: Math.round(x.sum || 0)
+  }));
+  document.getElementById('categoryChart').innerHTML =
+    barChart(catRevData, 'revenue');
+
+  // Recent orders
+  const recent = BB.query.sort(repos.orders.getAll(), 'createdAt', 'desc').slice(0, 5);
+  document.getElementById('recentOrders').innerHTML = recent.length
+    ? `<div class="table-wrap"><table>
+        <thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${recent.map(o => `
+          <tr style="cursor:pointer" onclick="showOrderDetail('${o.id}')">
+            <td><strong>${o.orderNumber}</strong></td>
+            <td>${o.customer?.name || '—'}</td>
+            <td>${utils.formatPrice(o.total,cur)}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td>${utils.formatDateShort(o.createdAt)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`
+    : '<div class="empty-state" style="padding:2rem"><div class="empty-state-icon">📦</div><div class="empty-state-title">No orders yet</div><div class="empty-state-desc">Orders placed on the storefront will appear here</div></div>';
+}
+
+// ─────────────────────────────────────────────
+// ORDERS PANEL
+// ─────────────────────────────────────────────
+let orderState = { search:'', status:'', dateFrom:'', dateTo:'', page:1, pageSize:15 };
+
+function initOrders() {
+  renderOrdersTable();
+}
+
+function getFilteredOrders() {
+  return repos.orders.query({
+    filters: {
+      ...(orderState.status ? { status: orderState.status } : {}),
+      ...(orderState.dateFrom ? { $dateFrom: orderState.dateFrom } : {}),
+      ...(orderState.dateTo   ? { $dateTo:   orderState.dateTo   } : {}),
+    },
+    search: orderState.search,
+    searchFields: ['orderNumber', 'status'],
+    sort: { field:'createdAt', dir:'desc' },
+  });
+}
+
+function renderOrdersTable() {
+  const all = getFilteredOrders();
+  const paged = BB.query.paginate(all, orderState.page, orderState.pageSize);
+  const cur = settings.currency;
+
+  document.getElementById('ordersResultCount').textContent =
+    `${all.length} order${all.length !== 1 ? 's' : ''} found`;
+
+  document.getElementById('ordersTableBody').innerHTML = paged.records.length
+    ? paged.records.map(o => `
+      <tr style="cursor:pointer" onclick="showOrderDetail('${o.id}')">
+        <td><strong>${o.orderNumber}</strong></td>
+        <td>${o.customer?.name || '—'}<div class="text-xs text-muted">${o.customer?.phone || ''}</div></td>
+        <td class="text-xs">${(o.items||[]).slice(0,2).map(i=>`${i.name} ×${i.qty}`).join(', ')}${o.items?.length>2?` +${o.items.length-2} more`:''}</td>
+        <td><strong>${utils.formatPrice(o.total,cur)}</strong></td>
+        <td class="text-xs">${o.payment?.toUpperCase() || '—'}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td class="text-xs">${utils.formatDate(o.createdAt)}</td>
+        <td onclick="event.stopPropagation()">
+          <select class="form-control" style="padding:.3rem .5rem;font-size:.78rem;width:auto"
+            onchange="updateOrderStatus('${o.id}',this.value)">
+            ${lookups.orderStatuses.map(s =>
+              `<option value="${s.id}" ${o.status===s.id?'selected':''}>${s.label}</option>`
+            ).join('')}
+          </select>
+        </td>
+      </tr>
+    `).join('')
+    : `<tr><td colspan="8"><div class="empty-state" style="padding:2rem">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No orders found</div>
+      </div></td></tr>`;
+
+  // Pagination
+  const pg = document.getElementById('ordersPagination');
+  if (paged.totalPages > 1) {
+    pg.innerHTML =
+      `<button class="btn btn-outline btn-sm" ${!paged.hasPrev?'disabled':''} onclick="orderPage(${paged.page-1})">← Prev</button>
+       <span class="text-sm text-muted">Page ${paged.page} of ${paged.totalPages}</span>
+       <button class="btn btn-outline btn-sm" ${!paged.hasNext?'disabled':''} onclick="orderPage(${paged.page+1})">Next →</button>`;
+  } else pg.innerHTML = '';
+}
+
+function orderPage(n) { orderState.page=n; renderOrdersTable(); }
+
+function updateOrderStatus(id, status) {
+  services.orders.updateStatus(id, status);
+  BB.toast.success(`Order status updated to ${status}`);
+  renderOrdersTable();
+  initOverview();
+}
+
+// ── Order Detail Modal ────────────────────────────────────
+function showOrderDetail(id) {
+  const o = repos.orders.getById(id);
+  if (!o) return;
+  const cur = settings.currency;
+  document.getElementById('orderModalTitle').textContent = `Order ${o.orderNumber}`;
+  document.getElementById('orderModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+      <div>
+        <div class="text-xs text-muted font-semibold mb-1">CUSTOMER</div>
+        <div class="font-semibold">${o.customer?.name}</div>
+        <div class="text-sm text-muted">${o.customer?.phone}</div>
+        <div class="text-sm text-muted">${o.customer?.email || ''}</div>
+      </div>
+      <div>
+        <div class="text-xs text-muted font-semibold mb-1">DELIVERY ADDRESS</div>
+        <div class="text-sm">${o.customer?.address}</div>
+      </div>
+    </div>
+    <div class="mb-1"><div class="text-xs text-muted font-semibold mb-1">ORDER ITEMS</div>
+    <div class="table-wrap"><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+    <tbody>${(o.items||[]).map(i=>`<tr><td>${i.name}${i.notes?`<div class="text-xs text-muted">${i.notes}</div>`:''}</td><td>${i.qty}</td><td>${utils.formatPrice(i.price,cur)}</td><td>${utils.formatPrice(i.price*i.qty,cur)}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="cart-summary mt-2" style="margin-bottom:1rem">
+      <div class="cart-summary-row"><span>Subtotal</span><span>${utils.formatPrice(o.subtotal,cur)}</span></div>
+      <div class="cart-summary-row"><span>Delivery</span><span>${o.deliveryFee===0?'FREE':utils.formatPrice(o.deliveryFee,cur)}</span></div>
+      <div class="cart-summary-row total"><span>Total</span><span>${utils.formatPrice(o.total,cur)}</span></div>
+    </div>
+    <div class="flex-between">
+      <div>${statusBadge(o.status)}</div>
+      <div class="flex gap-1">
+        ${lookups.orderStatuses.map(s=>
+          `<button class="btn btn-sm ${s.id===o.status?'btn-primary':'btn-outline'}" onclick="updateOrderStatus('${o.id}','${s.id}');closeOrderModal()">${s.label}</button>`
+        ).join('')}
+      </div>
+    </div>
+    ${o.notes?`<div class="mt-2 text-sm text-muted">📝 ${o.notes}</div>`:''}
+    <div class="text-xs text-muted mt-2">Placed: ${utils.formatDate(o.createdAt)} · Payment: ${o.payment?.toUpperCase()}</div>
+  `;
+  document.getElementById('orderModal').classList.add('open');
+}
+function closeOrderModal() { document.getElementById('orderModal').classList.remove('open'); }
+document.getElementById('orderModal').addEventListener('click', e => { if(e.target===e.currentTarget)closeOrderModal(); });
+
+// ── Order search / filter events ──────────────────────────
+document.getElementById('orderSearch').addEventListener('input', e => { orderState.search=e.target.value; orderState.page=1; renderOrdersTable(); });
+document.getElementById('orderStatusFilter').addEventListener('change', e => { orderState.status=e.target.value; orderState.page=1; renderOrdersTable(); });
+document.getElementById('orderDateFrom').addEventListener('change', e => { orderState.dateFrom=e.target.value; orderState.page=1; renderOrdersTable(); });
+document.getElementById('orderDateTo').addEventListener('change', e => { orderState.dateTo=e.target.value; orderState.page=1; renderOrdersTable(); });
+
+function exportOrders() {
+  const orders = getFilteredOrders();
+  const cur    = settings.currency;
+
+  const orderRows = orders.map(o => ({
+    'Order #':        o.orderNumber,
+    'Date':           utils.formatDate(o.createdAt),
+    'Customer Name':  o.customer?.name    || '',
+    'Phone':          o.customer?.phone   || '',
+    'Address':        o.customer?.address || '',
+    'Items Summary':  (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('; '),
+    'Subtotal':       o.subtotal,
+    'Delivery Fee':   o.deliveryFee,
+    'Total':          o.total,
+    'Payment':        o.payment?.toUpperCase() || '',
+    'Status':         o.status,
+    'Notes':          o.notes || '',
+  }));
+
+  const itemRows = orders.flatMap(o =>
+    (o.items||[]).map(i => ({
+      'Order #':     o.orderNumber,
+      'Order Date':  utils.formatDateShort(o.createdAt),
+      'Customer':    o.customer?.name || '',
+      'Item Name':   i.name,
+      'Category':    lookups.categories.find(c=>c.id===i.category)?.label || i.category,
+      'Qty':         i.qty,
+      'Unit Price':  i.price,
+      'Line Total':  i.price * i.qty,
+    }))
+  );
+
+  BB.export.toXLSX([
+    { name: 'Orders',      rows: orderRows },
+    { name: 'Order Items', rows: itemRows  },
+  ], `diana-di-dolci-orders-${new Date().toISOString().slice(0,10)}.xlsx`);
+  BB.toast.success('Orders exported to Excel! (2 sheets)');
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTS PANEL
+// ─────────────────────────────────────────────
+function initProducts() {
+  // Populate category filter
+  const sel = document.getElementById('productCatFilter');
+  if (sel.options.length <= 1) {
+    lookups.categories.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = `${c.icon} ${c.label}`;
+      sel.appendChild(o);
+    });
+    // Populate product modal category select too
+    const pmCat = document.getElementById('pm-category');
+    lookups.categories.forEach(c => {
+      const o = document.createElement('option'); o.value=c.id; o.textContent=`${c.icon} ${c.label}`;
+      pmCat.appendChild(o);
+    });
+  }
+  renderProductsGrid();
+  document.getElementById('productSearch').addEventListener('input', renderProductsGrid);
+  document.getElementById('productCatFilter').addEventListener('change', renderProductsGrid);
+}
+
+function renderProductsGrid() {
+  const search = document.getElementById('productSearch').value;
+  const cat    = document.getElementById('productCatFilter').value;
+  const products = repos.products.query({
+    filters: { ...(cat ? { category: cat } : {}) },
+    search, searchFields: ['name','description','category'],
+    sort: { field:'name', dir:'asc' }
+  });
+  const cur = settings.currency;
+  document.getElementById('adminProductsGrid').innerHTML = products.map(p => {
+    const c      = lookups.categories.find(x => x.id === p.category);
+    const imgUrl = BB.images.getProductImage(p);
+    return `
+    <div class="product-card">
+      <div class="product-img loading" style="background:${c?.gradient||'#f9f0f4'};height:140px">
+        ${imgUrl ? `<img src="${imgUrl}" alt="${p.name}" loading="lazy"
+            onload="this.classList.add('loaded');this.parentElement.classList.remove('loading')"
+            onerror="this.remove();this.parentElement.classList.remove('loading')" />` : ''}
+        <span class="emoji">${c?.icon||'🍰'}</span>
+      </div>
+      ${!p.available?'<span class="unavailable-badge">Out of Stock</span>':''}
+      <div class="product-body" style="padding:.75rem">
+        <div class="product-name" style="font-size:.85rem">${p.name}</div>
+        <div class="product-price">${utils.formatPrice(p.price,cur)}</div>
+        <button class="btn btn-outline btn-sm w-full mt-2" onclick="openProductModal('${p.id}')">✏️ Edit</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">No products found</div></div>';
+}
+
+function openProductModal(id) {
+  const isEdit = !!id;
+  document.getElementById('productModalTitle').textContent = isEdit ? 'Edit Product' : 'Add Product';
+  document.getElementById('pm-deleteBtn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    const p = repos.products.getById(id);
+    document.getElementById('pm-id').value          = p.id;
+    document.getElementById('pm-name').value        = p.name;
+    document.getElementById('pm-category').value    = p.category;
+    document.getElementById('pm-price').value       = p.price;
+    document.getElementById('pm-description').value = p.description;
+    document.getElementById('pm-tags').value        = (p.tags||[]).join(', ');
+    document.getElementById('pm-available').value   = String(p.available);
+  } else {
+    ['pm-id','pm-name','pm-price','pm-description','pm-tags'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('pm-category').value  = '';
+    document.getElementById('pm-available').value = 'true';
+  }
+  document.getElementById('productModal').classList.add('open');
+}
+
+function closeProductModal() { document.getElementById('productModal').classList.remove('open'); }
+document.getElementById('productModal').addEventListener('click', e => { if(e.target===e.currentTarget)closeProductModal(); });
+
+function saveProduct() {
+  const id   = document.getElementById('pm-id').value;
+  const name = document.getElementById('pm-name').value.trim();
+  const cat  = document.getElementById('pm-category').value;
+  const price = parseFloat(document.getElementById('pm-price').value);
+  if (!name || !cat || isNaN(price)) { BB.toast.error('Please fill in all required fields'); return; }
+  const data = {
+    name, category: cat, price,
+    description: document.getElementById('pm-description').value.trim(),
+    tags: document.getElementById('pm-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    available: document.getElementById('pm-available').value === 'true',
+  };
+  if (id) repos.products.update(id, data);
+  else    repos.products.create(data);
+  closeProductModal();
+  renderProductsGrid();
+  BB.toast.success(`Product ${id ? 'updated' : 'added'}!`);
+}
+
+function deleteProduct() {
+  const id = document.getElementById('pm-id').value;
+  if (!id || !confirm('Delete this product? This cannot be undone.')) return;
+  repos.products.delete(id);
+  closeProductModal();
+  renderProductsGrid();
+  BB.toast.success('Product deleted');
+}
+
+// ─────────────────────────────────────────────
+// REPORTS PANEL
+// ─────────────────────────────────────────────
+function setReportRange(days) {
+  const to = new Date();
+  document.getElementById('reportTo').value = to.toISOString().slice(0,10);
+  if (days === 0) { document.getElementById('reportFrom').value = ''; }
+  else {
+    const from = new Date(to - days * 86400000);
+    document.getElementById('reportFrom').value = from.toISOString().slice(0,10);
+  }
+  renderReports();
+}
+
+function initReports() {
+  if (!document.getElementById('reportTo').value) setReportRange(30);
+  else renderReports();
+}
+
+function renderReports() {
+  const from = document.getElementById('reportFrom').value;
+  const to   = document.getElementById('reportTo').value;
+  const cur  = settings.currency;
+
+  const orders = repos.orders.query({
+    filters: {
+      ...(from ? { $dateFrom: from } : {}),
+      ...(to   ? { $dateTo:   to   } : {}),
+    }
+  });
+
+  const revenue  = orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+o.total,0);
+  const avgOrder = orders.length ? revenue/orders.length : 0;
+  const byStatus = BB.query.aggregate(orders, 'status');
+  const allItems = orders.filter(o=>o.status!=='cancelled').flatMap(o=>o.items||[]);
+
+  document.getElementById('reportStats').innerHTML = [
+    { label:'Orders',        value: orders.length,                      icon:'📦' },
+    { label:'Revenue',       value: utils.formatPrice(revenue,cur),     icon:'💰' },
+    { label:'Avg Order',     value: utils.formatPrice(Math.round(avgOrder),cur), icon:'📊' },
+    { label:'Items Sold',    value: allItems.reduce((s,i)=>s+i.qty,0),  icon:'🍰' },
+  ].map(s=>`<div class="stat-card"><div style="font-size:1.5rem">${s.icon}</div><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div></div>`).join('');
+
+  document.getElementById('reportStatusBreakdown').innerHTML = barChart(
+    byStatus.map(x => {
+      const s = lookups.orderStatuses.find(ss => ss.id === x.group);
+      return { group: s?.label || x.group, count: x.count };
+    }), 'count');
+
+  const catRev = BB.query.aggregate(allItems, 'category', 'revenue').map(x => ({
+    group: lookups.categories.find(c=>c.id===x.group)?.label || x.group,
+    revenue: Math.round(x.sum||0)
+  }));
+  document.getElementById('reportCategoryBreakdown').innerHTML = barChart(catRev, 'revenue');
+
+  // Top products
+  const productSales = {};
+  allItems.forEach(i => {
+    if (!productSales[i.name]) productSales[i.name] = { qty:0, revenue:0 };
+    productSales[i.name].qty     += i.qty;
+    productSales[i.name].revenue += i.price * i.qty;
+  });
+  const topProducts = Object.entries(productSales)
+    .map(([name, d]) => ({ name, ...d }))
+    .sort((a,b) => b.revenue - a.revenue)
+    .slice(0, 10);
+
+  document.getElementById('topProductsTable').innerHTML = topProducts.length
+    ? `<div class="table-wrap"><table><thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+        <tbody>${topProducts.map(p=>`<tr><td>${p.name}</td><td>${p.qty}</td><td>${utils.formatPrice(p.revenue,cur)}</td></tr>`).join('')}
+        </tbody></table></div>`
+    : '<div class="empty-state" style="padding:1.5rem"><div class="empty-state-icon">📊</div><div class="empty-state-title">No data for this period</div></div>';
+}
+
+function exportReport() {
+  const from = document.getElementById('reportFrom').value;
+  const to   = document.getElementById('reportTo').value;
+  const cur  = settings.currency;
+  const orders = repos.orders.query({
+    filters: { ...(from?{$dateFrom:from}:{}), ...(to?{$dateTo:to}:{}) }
+  });
+
+  // Sheet 1: Orders
+  const orderRows = orders.map(o => ({
+    'Order #':      o.orderNumber,
+    'Date':         utils.formatDate(o.createdAt),
+    'Customer':     o.customer?.name || '',
+    'Phone':        o.customer?.phone || '',
+    'Items':        (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('; '),
+    'Subtotal':     o.subtotal,
+    'Delivery Fee': o.deliveryFee,
+    'Total':        o.total,
+    'Payment':      o.payment?.toUpperCase() || '',
+    'Status':       o.status,
+  }));
+
+  // Sheet 2: Line items
+  const itemRows = orders.flatMap(o =>
+    (o.items||[]).map(i => ({
+      'Order #':    o.orderNumber,
+      'Date':       utils.formatDateShort(o.createdAt),
+      'Customer':   o.customer?.name || '',
+      'Item':       i.name,
+      'Category':   lookups.categories.find(c=>c.id===i.category)?.label || i.category,
+      'Qty':        i.qty,
+      'Unit Price': i.price,
+      'Subtotal':   i.price * i.qty,
+    }))
+  );
+
+  // Sheet 3: Top products
+  const productSales = {};
+  orders.filter(o=>o.status!=='cancelled').flatMap(o=>o.items||[]).forEach(i => {
+    if (!productSales[i.name]) productSales[i.name] = { qty:0, revenue:0 };
+    productSales[i.name].qty += i.qty;
+    productSales[i.name].revenue += i.price * i.qty;
+  });
+  const topRows = Object.entries(productSales)
+    .map(([name, d]) => ({ 'Product': name, 'Units Sold': d.qty, 'Revenue': d.revenue }))
+    .sort((a,b) => b['Revenue'] - a['Revenue']);
+
+  BB.export.toXLSX([
+    { name: 'Orders',        rows: orderRows },
+    { name: 'Order Items',   rows: itemRows  },
+    { name: 'Top Products',  rows: topRows   },
+  ], `diana-di-dolci-report-${from||'all'}-to-${to||'all'}.xlsx`);
+  BB.toast.success('Report exported to Excel!');
+}
+
+// ─────────────────────────────────────────────
+// BACKUP PANEL
+// ─────────────────────────────────────────────
+function initBackup() { renderSnapshots(); }
+
+// ── Export functions ──────────────────────────
+function exportFull() {
+  BB.export.toJSON(BB.storage.exportAll(), `dianadidolci-backup-${new Date().toISOString().slice(0,10)}.json`);
+  BB.toast.success('Full backup downloaded (JSON)');
+}
+
+function exportOrdersXLSX() {
+  const orders = repos.orders.getAll();
+  const cur    = settings.currency;
+
+  const orderRows = orders.map(o => ({
+    'Order #':        o.orderNumber,
+    'Date':           utils.formatDate(o.createdAt),
+    'Customer Name':  o.customer?.name    || '',
+    'Phone':          o.customer?.phone   || '',
+    'Email':          o.customer?.email   || '',
+    'Address':        o.customer?.address || '',
+    'Items Summary':  (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('; '),
+    'Subtotal':       o.subtotal,
+    'Delivery Fee':   o.deliveryFee,
+    'Total':          o.total,
+    'Payment':        o.payment?.toUpperCase() || '',
+    'Status':         o.status,
+    'Notes':          o.notes || '',
+  }));
+
+  const itemRows = orders.flatMap(o =>
+    (o.items||[]).map(i => ({
+      'Order #':     o.orderNumber,
+      'Order Date':  utils.formatDateShort(o.createdAt),
+      'Customer':    o.customer?.name || '',
+      'Item Name':   i.name,
+      'Category':    lookups.categories.find(c=>c.id===i.category)?.label || i.category,
+      'Qty':         i.qty,
+      'Unit Price':  i.price,
+      'Line Total':  i.price * i.qty,
+      'Item Notes':  i.notes || '',
+    }))
+  );
+
+  BB.export.toXLSX([
+    { name: 'Orders',      rows: orderRows },
+    { name: 'Order Items', rows: itemRows  },
+  ], `diana-di-dolci-orders-${new Date().toISOString().slice(0,10)}.xlsx`);
+  BB.toast.success('Orders exported to Excel! (2 sheets)');
+}
+
+function exportProductsXLSX() {
+  const rows = repos.products.getAll().map(p => ({
+    'ID':           p.id,
+    'Name':         p.name,
+    'Category':     lookups.categories.find(c=>c.id===p.category)?.label || p.category,
+    'Category ID':  p.category,
+    'Price':        p.price,
+    'Description':  p.description,
+    'Tags':         (p.tags||[]).join(', '),
+    'Available':    p.available ? 'Yes' : 'No',
+    'Created':      utils.formatDate(p.createdAt),
+  }));
+  BB.export.toXLSX([{ name: 'Products', rows }],
+    `diana-di-dolci-products-${new Date().toISOString().slice(0,10)}.xlsx`);
+  BB.toast.success('Products exported to Excel!');
+}
+
+// ── Download blank template ───────────────────
+function downloadProductTemplate() {
+  const templateRows = [
+    { 'Name': 'Chocolate Truffle Cake', 'Category': 'cake', 'Price': 850, 'Description': 'Rich chocolate truffle cake', 'Tags': 'bestseller, popular', 'Available': 'Yes' },
+    { 'Name': 'Blueberry Cheesecake',   'Category': 'cheesecake', 'Price': 650, 'Description': 'Creamy blueberry cheesecake', 'Tags': 'featured', 'Available': 'Yes' },
+  ];
+  BB.export.toXLSX([{ name: 'Products', rows: templateRows }], 'diana-di-dolci-products-TEMPLATE.xlsx');
+  BB.toast.info('Template downloaded — fill in your products and import!');
+}
+
+// ── Import type hint ──────────────────────────
+function updateImportHint(type) {
+  const hintEl = document.getElementById('importHint');
+  const prodTab = document.getElementById('itab-products');
+  const restTab = document.getElementById('itab-restore');
+  if (type === 'products') {
+    prodTab.style.cssText += 'border-color:var(--primary);background:var(--primary-soft);color:var(--primary)';
+    restTab.style.cssText += 'border-color:var(--border);background:transparent;color:var(--text-muted)';
+    hintEl.innerHTML = '📋 <strong>Products sheet columns:</strong> Name, Category ID, Price, Description, Tags, Available<br><em>Category IDs: cake, cheesecake, brownie, cupcake, cookie, pasta</em>';
+  } else {
+    restTab.style.cssText += 'border-color:var(--primary);background:var(--primary-soft);color:var(--primary)';
+    prodTab.style.cssText += 'border-color:var(--border);background:transparent;color:var(--text-muted)';
+    hintEl.innerHTML = '⚠️ <strong>Full restore</strong> will overwrite <em>all</em> current data (orders, products, settings). Use only with a backup file from this app.';
+  }
+}
+
+// ── File import handler ───────────────────────
+async function handleFileImport(file) {
+  if (!file) return;
+  try {
+    const result = await BB.export.fromFile(file);
+
+    if (result.type === 'json-backup') {
+      if (!confirm('This will OVERWRITE all current data with the backup. Continue?')) return;
+      BB.storage.importAll(result.data);
+      BB.toast.success('Backup restored! Reloading…');
+      setTimeout(() => location.reload(), 1500);
+      return;
+    }
+
+    if (result.type === 'xlsx') {
+      const importType = document.querySelector('input[name="importType"]:checked')?.value || 'products';
+
+      if (importType === 'restore') {
+        BB.toast.error('Full restore requires a .json backup file, not Excel.');
+        return;
+      }
+
+      // Products import
+      const sheetName = result.sheetNames.find(n => n.toLowerCase().includes('product')) || result.sheetNames[0];
+      const rows = result.sheets[sheetName] || [];
+      if (!rows.length) { BB.toast.error('No data found in the Excel file.'); return; }
+
+      const VALID_CATS = lookups.categories.map(c => c.id);
+      let imported = 0, skipped = 0;
+
+      rows.forEach(row => {
+        const name  = String(row['Name'] || row['name'] || '').trim();
+        const catRaw= String(row['Category ID'] || row['Category'] || row['category'] || '').trim().toLowerCase();
+        const price = parseFloat(row['Price'] || row['price'] || 0);
+
+        // Try to match category
+        const catId = VALID_CATS.find(c => c === catRaw)
+          || lookups.categories.find(c => c.label.toLowerCase() === catRaw)?.id;
+
+        if (!name || !catId || isNaN(price) || price <= 0) { skipped++; return; }
+
+        const tagsRaw   = String(row['Tags'] || row['tags'] || '').trim();
+        const available = String(row['Available'] || row['available'] || 'Yes').toLowerCase() !== 'no';
+
+        repos.products.create({
+          name,
+          category:    catId,
+          price,
+          description: String(row['Description'] || row['description'] || '').trim(),
+          tags:        tagsRaw ? tagsRaw.split(/[,|]/).map(t=>t.trim()).filter(Boolean) : [],
+          available,
+          image:       null,
+        });
+        imported++;
+      });
+
+      renderProductsGrid();
+      BB.toast.success(`✅ Imported ${imported} product${imported!==1?'s':''}${skipped?` (${skipped} skipped — missing name/category/price)`:''}`);
+      if (imported) navigate('products');
+    }
+  } catch(e) {
+    BB.toast.error(`Import failed: ${e.message}`);
+  } finally {
+    // Reset file input so same file can be re-imported
+    const inp = document.getElementById('importFileInput');
+    if (inp) inp.value = '';
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const dz = document.getElementById('importDropzone');
+  dz.style.borderColor = ''; dz.style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileImport(file);
+}
+
+function saveManualSnapshot() {
+  const label = prompt('Snapshot label (optional):', 'Manual backup') || 'Manual backup';
+  BB.storage.saveSnapshot(label);
+  renderSnapshots();
+  BB.toast.success('Snapshot saved!');
+}
+
+function renderSnapshots() {
+  const snaps = BB.storage.getSnapshots();
+  document.getElementById('snapshotsList').innerHTML = snaps.length
+    ? snaps.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem;border-bottom:1px solid var(--border)">
+        <div>
+          <div class="font-semibold text-sm">${s.label}</div>
+          <div class="text-xs text-muted">${utils.formatDate(s.createdAt)}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="restoreSnapshot('${s.id}')">⟳ Restore</button>
+      </div>`).join('')
+    : '<div class="empty-state" style="padding:2rem"><div class="empty-state-icon">📷</div><div class="empty-state-title">No snapshots yet</div><div class="empty-state-desc">Snapshots are created automatically after each order</div></div>';
+}
+
+function restoreSnapshot(id) {
+  if (!confirm('Restore this snapshot? Current data will be replaced.')) return;
+  BB.storage.restoreSnapshot(id);
+  BB.toast.success('Snapshot restored! Reloading…');
+  setTimeout(() => location.reload(), 1500);
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS PANEL
+// ─────────────────────────────────────────────
+function initSettings() {
+  const s = BB.storage.getSettings();
+  ['bakeryName','tagline','currency','deliveryFee','freeDeliveryAbove','estimatedDeliveryMins',
+   'phone','whatsapp','email','instagram','address'].forEach(k => {
+    const el = document.getElementById(`s-${k}`);
+    if (el) el.value = s[k] ?? '';
+  });
+}
+
+function saveSettings() {
+  const s = {};
+  ['bakeryName','tagline','currency','phone','whatsapp','email','instagram','address'].forEach(k => {
+    s[k] = document.getElementById(`s-${k}`)?.value?.trim() || '';
+  });
+  ['deliveryFee','freeDeliveryAbove','estimatedDeliveryMins'].forEach(k => {
+    s[k] = parseFloat(document.getElementById(`s-${k}`)?.value) || 0;
+  });
+  BB.storage.saveSettings(s);
+  settings = BB.storage.getSettings();
+  BB.toast.success('Settings saved!');
+}
+
+function resetData() {
+  if (!confirm('⚠️ This will DELETE ALL data (orders, products, settings). Are you absolutely sure?')) return;
+  if (!confirm('Last chance — this cannot be undone. Confirm reset?')) return;
+  BB.storage.clearAll();
+  BB.toast.success('All data cleared. Reloading…');
+  setTimeout(() => location.reload(), 1500);
+}
+
+// ─────────────────────────────────────────────
+// PANEL INIT MAP
+// ─────────────────────────────────────────────
+const panelInitMap = {
+  overview: initOverview,
+  orders:   initOrders,
+  products: initProducts,
+  reports:  initReports,
+  backup:   initBackup,
+  settings: initSettings,
+};
+
+// Boot
+initOverview();
+
+// ── Mobile admin menu (bottom sheet) ──────────
+function closeMobileMenu() {
+  document.getElementById('mobileAdminMenu').style.display = 'none';
+}
+// Replace the Admin tab to open the bottom sheet instead of navigating
+document.getElementById('tab-admin').addEventListener('click', e => {
+  if (window.innerWidth <= 768) {
+    e.preventDefault();
+    document.getElementById('mobileAdminMenu').style.display = 'block';
+  }
+});
+// Sync mobile sheet buttons with active panel state
+const origNavigate = navigate;
+</script>
+</body>
+</html>

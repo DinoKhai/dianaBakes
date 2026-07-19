@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diana Di Dolci — Crafted with Love, Baked for You</title>
+  <meta name="description" content="Delicious cakes, cheesecakes, brownies, pasta and more — crafted with love, made fresh with premium ingredients just for you." />
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>" />
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="navbar">
+  <div class="container">
+    <a href="./index.html" class="nav-brand">
+      <span class="brand-name">Diana Di Dolci ♡</span>
+      <span class="brand-sub">Bakery</span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="./index.html" class="active">Home</a></li>
+      <li><a href="./menu.html">Menu</a></li>
+      <li><a href="#about">About Us</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button id="themeToggle" class="theme-btn" title="Toggle theme">🌙</button>
+      <a href="./menu.html" class="btn btn-primary btn-sm nav-order-btn">🛍 Order Now</a>
+      <a href="./cart.html" class="nav-cart-btn" title="View cart">
+        🛒
+        <span class="cart-badge" style="display:none">0</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav class="mobile-bottom-nav" aria-label="Main navigation">
+  <ul>
+    <li><a href="./index.html" class="active" id="tab-home">
+      <span class="tab-icon">🏠</span>Home
+    </a></li>
+    <li><a href="./menu.html" id="tab-menu">
+      <span class="tab-icon">🍰</span>Menu
+    </a></li>
+    <li><a href="./cart.html" id="tab-cart" style="position:relative">
+      <span class="tab-icon">🛒</span>Cart
+      <span class="tab-cart-badge cart-badge" style="display:none">0</span>
+    </a></li>
+    <li><a href="./admin.html" id="tab-admin">
+      <span class="tab-icon">⚙️</span>Admin
+    </a></li>
+  </ul>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <p class="hero-eyebrow">♡ Crafted with Love</p>
+      <h1 class="hero-title">
+        <span class="line1">Baked for</span>
+        <span class="line2">happy moments</span>
+      </h1>
+      <p class="hero-desc">
+        Delicious cakes, cheesecakes, brownies, pasta and more —
+        crafted fresh with premium ingredients just for you.
+      </p>
+      <div class="hero-ctas">
+        <a href="./menu.html" class="btn btn-primary btn-lg">Order Now ♡</a>
+        <a href="./menu.html" class="btn btn-outline btn-lg">Explore Menu</a>
+      </div>
+      <div class="hero-features">
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🥣</div>
+          <span>Freshly Made</span>
+          <small>Every Order</small>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🧁</div>
+          <span>Premium</span>
+          <small>Ingredients</small>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🛵</div>
+          <span>Timely</span>
+          <small>Delivery</small>
+        </div>
+      </div>
+    </div>
+    <div class="hero-image" aria-hidden="true">
+      <div class="hero-img-wrap">
+        <img
+          src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&h=500&fit=crop&auto=format"
+          alt="Beautiful cake by Diana Di Dolci"
+          onload="this.classList.add('loaded')"
+          onerror="this.remove()"
+        />
+        <span class="hero-emoji">🎂</span>
+      </div>
+      <div class="hero-badge">Made<br>with<br>Love ♡</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CATEGORIES ═══ -->
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-3">
+      <h2 class="section-title">What would you like today? ✨</h2>
+    </div>
+    <div class="categories-grid" id="categoriesGrid">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BESTSELLERS ═══ -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="flex-between mb-3">
+      <div>
+        <h2 class="section-title">Our Bestsellers ♡</h2>
+        <p class="section-subtitle">Favourites that keep coming back</p>
+      </div>
+      <a href="./menu.html" class="btn btn-outline">View All →</a>
+    </div>
+    <div class="products-grid" id="bestsellersGrid">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES BANNER ═══ -->
+<section class="section">
+  <div class="container">
+    <div class="features-banner">
+      <div class="feat-item">
+        <div class="feat-icon">❤️</div>
+        <div class="feat-title">Made with Love</div>
+        <div class="feat-desc">Every recipe is crafted with care &amp; passion</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🌿</div>
+        <div class="feat-title">Premium Ingredients</div>
+        <div class="feat-desc">We use only the best &amp; freshest ingredients</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">⏱️</div>
+        <div class="feat-title">On-Time Delivery</div>
+        <div class="feat-desc">We deliver on time, every time</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🏆</div>
+        <div class="feat-title">100% Satisfaction</div>
+        <div class="feat-desc">Your happiness is our sweetest reward</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ INSTAGRAM + CUSTOM ORDERS + CONTACT ═══ -->
+<section class="section section-alt" id="contact">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;" id="footerPanels">
+
+      <!-- Instagram -->
+      <div class="card" id="aboutSection">
+        <h3 class="card-title" style="font-family:var(--font-display);font-style:italic;">Follow us on Instagram ♡</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem">
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#ffe0e9,#ffb3c6)"><img src="https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Cheesecake" onerror="this.style.display='none'"/></div>
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#6b3c1a,#3d1a06)"><img src="https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Brownie" onerror="this.style.display='none'"/></div>
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#ffd6e0,#ffadc5)"><img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Cake" onerror="this.style.display='none'"/></div>
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#fff3cd,#ffd580)"><img src="https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Pasta" onerror="this.style.display='none'"/></div>
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#f5deb3,#deb887)"><img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Cookies" onerror="this.style.display='none'"/></div>
+          <div style="border-radius:8px;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,#f9c6d3,#f48fb1)"><img src="https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=120&h=120&fit=crop&auto=format" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="Cupcakes" onerror="this.style.display='none'"/></div>
+        </div>
+        <a href="#" class="btn btn-outline w-full" id="instagramLink">📸 @dianadidolci</a>
+      </div>
+
+      <!-- Custom Orders -->
+      <div class="card text-center">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🎂</div>
+        <h3 class="card-title">Custom Orders</h3>
+        <p class="footer-text" style="margin-bottom:1.25rem">
+          Planning a birthday, anniversary or special event?
+          We create custom cakes &amp; hampers just for you!
+        </p>
+        <a href="./cart.html?custom=1" class="btn btn-primary w-full">Enquire Now ♡</a>
+      </div>
+
+      <!-- Contact -->
+      <div class="card" id="reviews">
+        <h3 class="card-title">Let's stay in touch!</h3>
+        <p class="text-sm text-muted mb-2">For orders &amp; enquiries</p>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <a class="footer-link flex gap-1" id="phoneLink" href="tel:+917019371199" style="font-size:.9rem">📞 +91 70193 71199</a>
+          <a class="footer-link flex gap-1" id="igLink" href="#" style="font-size:.9rem">📸 @dianadidolci</a>
+          <span class="footer-link flex gap-1" id="addrLink" style="font-size:.9rem">📍 Lamka</span>
+          <a id="whatsappBtn" href="#" class="btn btn-success w-full mt-1">💬 Chat on WhatsApp</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer id="about">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2024 Diana Di Dolci. All Rights Reserved.</span>
+      <div class="flex gap-2">
+        <a href="./admin.html" class="footer-link">Admin</a>
+        <span>Made with <span class="footer-heart">♡</span></span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="./assets/js/core.js"></script>
+<script>
+BB.init();
+
+const { repos, services, utils, lookups } = BB;
+
+// ── Shared product card builder ──────────────────────────────
+function productCard(p, { onAddCart = '', onClick = '' } = {}) {
+  const cat    = lookups.categories.find(c => c.id === p.category);
+  const imgUrl = BB.images.getProductImage(p);
+  const tag    = p.tags.includes('bestseller') ? '<span class="product-tag tag-bestseller">⭐ Bestseller</span>'
+               : p.tags.includes('popular')    ? '<span class="product-tag tag-popular">🔥 Popular</span>'
+               : p.tags.includes('custom')     ? '<span class="product-tag tag-custom">✨ Custom</span>' : '';
+  const s = BB.storage.getSettings();
+  return `
+  <div class="product-card fade-in">
+    <div class="product-img loading" style="background:${cat?.gradient || '#f9f0f4'}" ${onClick}>
+      ${imgUrl ? `<img src="${imgUrl}" alt="${p.name}" loading="lazy"
+          onload="this.classList.add('loaded');this.parentElement.classList.remove('loading')"
+          onerror="this.remove();this.parentElement.classList.remove('loading')" />` : ''}
+      <span class="emoji">${cat?.icon || '🍰'}</span>
+    </div>
+    <button class="product-wishlist" title="Add to wishlist" onclick="this.classList.toggle('active')">♡</button>
+    <div class="product-body">
+      <div class="product-name">${p.name}</div>
+      <div class="product-desc">${p.description}</div>
+      <div class="product-footer">
+        <span class="product-price">${utils.formatPrice(p.price, s.currency)}</span>
+        ${tag}
+      </div>
+      <button class="btn btn-primary w-full mt-2" onclick="${onAddCart}">Add to Cart 🛒</button>
+    </div>
+  </div>`;
+}
+
+// ── Render categories ────────────────────────────────────────
+function renderCategories() {
+  const grid = document.getElementById('categoriesGrid');
+  grid.innerHTML = lookups.categories.map(cat => {
+    const imgUrl = BB.images.categoryCircle[cat.id] || '';
+    return `
+    <a href="./menu.html?cat=${cat.id}" class="category-card fade-in">
+      <div class="cat-icon-wrap" style="background:${cat.gradient}">
+        ${imgUrl ? `<img src="${imgUrl}" alt="${cat.label}" loading="lazy"
+            onload="this.classList.add('loaded')"
+            onerror="this.remove()" />` : ''}
+        <span class="cat-emoji">${cat.icon}</span>
+      </div>
+      <div class="cat-name">${cat.label}</div>
+      <div class="cat-tagline">${cat.tagline}</div>
+    </a>`;
+  }).join('');
+}
+
+// ── Render bestsellers ───────────────────────────────────────
+function renderBestsellers() {
+  const grid     = document.getElementById('bestsellersGrid');
+  const products = repos.products.query({
+    filters: { $tags: ['bestseller','featured'] },
+    sort:    { field: 'name', dir: 'asc' }
+  });
+  grid.innerHTML = products.slice(0, 4).map(p =>
+    productCard(p, { onAddCart: `addToCart('${p.id}')` })
+  ).join('');
+}
+
+// ── Add to cart ──────────────────────────────────────────────
+function addToCart(id) {
+  const p = repos.products.getById(id);
+  if (!p) return;
+  services.cart.add(p, 1);
+  BB.toast.success(`${p.name} added to cart!`);
+  // Animate badge
+  document.querySelectorAll('.cart-badge').forEach(b => {
+    b.style.animation = 'none';
+    b.offsetHeight; // reflow
+    b.style.animation = 'pulse .3s ease';
+  });
+}
+
+// ── Settings-driven dynamic links ───────────────────────────
+function applySettings() {
+  const s = BB.storage.getSettings();
+  document.title = `${s.bakeryName} — ${s.tagline}`;
+  const phoneEl = document.getElementById('phoneLink');
+  if (phoneEl) { phoneEl.textContent = `📞 ${s.phone}`; phoneEl.href = `tel:${s.phone.replace(/\s/g,'')}`; }
+  const igEl = document.getElementById('igLink');
+  if (igEl) { igEl.textContent = `📸 ${s.instagram}`; }
+  const instEl = document.getElementById('instagramLink');
+  if (instEl) { instEl.textContent = `📸 ${s.instagram}`; }
+  const addrEl = document.getElementById('addrLink');
+  if (addrEl) addrEl.textContent = `📍 ${s.address}`;
+  const waBtn = document.getElementById('whatsappBtn');
+  if (waBtn) waBtn.href = `https://wa.me/${s.whatsapp.replace(/\D/g,'')}?text=Hi! I'd like to place an order.`;
+}
+
+renderCategories();
+renderBestsellers();
+applySettings();
+</script>
+</body>
+</html>

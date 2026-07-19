@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu — Diana Di Dolci</title>
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>" />
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="navbar">
+  <div class="container">
+    <a href="./index.html" class="nav-brand">
+      <span class="brand-name">Diana Di Dolci ♡</span>
+      <span class="brand-sub">Bakery</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./menu.html" class="active">Menu</a></li>
+      <li><a href="./index.html#about">About Us</a></li>
+      <li><a href="./index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button id="themeToggle" class="theme-btn">🌙</button>
+      <a href="./cart.html" class="nav-cart-btn">
+        🛒 <span class="cart-badge" style="display:none">0</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav class="mobile-bottom-nav" aria-label="Main navigation">
+  <ul>
+    <li><a href="./index.html" id="tab-home">
+      <span class="tab-icon">🏠</span>Home
+    </a></li>
+    <li><a href="./menu.html" class="active" id="tab-menu">
+      <span class="tab-icon">🍰</span>Menu
+    </a></li>
+    <li><a href="./cart.html" id="tab-cart" style="position:relative">
+      <span class="tab-icon">🛒</span>Cart
+      <span class="tab-cart-badge cart-badge" style="display:none">0</span>
+    </a></li>
+    <li><a href="./admin.html" id="tab-admin">
+      <span class="tab-icon">⚙️</span>Admin
+    </a></li>
+  </ul>
+</nav>
+
+<!-- ═══ PAGE HEADER ═══ -->
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="./index.html">Home</a> <span>/</span> <span>Menu</span></div>
+    <h1>Our Menu 🍰</h1>
+    <p>Freshly baked with love — browse all categories and add to cart</p>
+  </div>
+</div>
+
+<!-- ═══ FILTER BAR ═══ -->
+<div class="container">
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" type="search" class="form-control search-input" placeholder="Search cakes, brownies, pasta…" />
+    </div>
+    <div class="filter-tabs" id="catTabs">
+      <button class="filter-tab active" data-cat="">All Items</button>
+      <!-- Tabs rendered by JS -->
+    </div>
+    <select id="sortSelect" class="form-control" style="width:auto;padding:.4rem .75rem;">
+      <option value="name-asc">A → Z</option>
+      <option value="price-asc">Price ↑</option>
+      <option value="price-desc">Price ↓</option>
+      <option value="popular">Popular First</option>
+    </select>
+  </div>
+
+  <!-- Active filter chips -->
+  <div id="activeFilters" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;"></div>
+
+  <!-- Results count -->
+  <div id="resultCount" class="text-sm text-muted mb-2"></div>
+</div>
+
+<!-- ═══ PRODUCT GRID ═══ -->
+<div class="container" style="padding-bottom:3rem;">
+  <div class="products-grid" id="productsGrid">
+    <!-- Rendered by JS -->
+  </div>
+  <div id="emptyState" class="empty-state hidden">
+    <div class="empty-state-icon">🔍</div>
+    <div class="empty-state-title">No items found</div>
+    <div class="empty-state-desc">Try a different search or category</div>
+  </div>
+  <!-- Pagination -->
+  <div id="pagination" class="flex-center gap-2 mt-4" style="justify-content:center;"></div>
+</div>
+
+<!-- ═══ QUICK VIEW MODAL ═══ -->
+<div class="modal-backdrop" id="quickViewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="qvTitle">Product</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="qvBody"></div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:1.5rem;font-size:.8rem;color:var(--text-muted);border-top:1px solid var(--border);margin-top:1rem;">
+  Made with ♡ by Diana Di Dolci · <a href="./index.html">Home</a> · <a href="./cart.html">Cart</a> · <a href="./admin.html">Admin</a>
+</footer>
+
+<script src="./assets/js/core.js"></script>
+<script>
+BB.init();
+const { repos, services, utils, lookups } = BB;
+const settings = BB.storage.getSettings();
+
+let state = {
+  cat: '',
+  search: '',
+  sort: 'name-asc',
+  page: 1,
+  pageSize: 12,
+};
+
+// ── Read URL params ────────────────────────────────────────
+const urlCat = new URLSearchParams(location.search).get('cat');
+if (urlCat) state.cat = urlCat;
+
+// ── Build category tabs ───────────────────────────────────
+function buildCatTabs() {
+  const container = document.getElementById('catTabs');
+  lookups.categories.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-tab' + (state.cat === c.id ? ' active' : '');
+    btn.dataset.cat = c.id;
+    btn.textContent = `${c.icon} ${c.label}`;
+    container.appendChild(btn);
+  });
+  container.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-tab');
+    if (!btn) return;
+    state.cat = btn.dataset.cat;
+    state.page = 1;
+    container.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+}
+
+// ── Derive products ───────────────────────────────────────
+function getFiltered() {
+  const [sortField, sortDir] = state.sort === 'popular'
+    ? ['tags', 'desc']
+    : state.sort.split('-');
+
+  let products = repos.products.query({
+    filters: {
+      ...(state.cat ? { category: state.cat } : {}),
+      available: true,
+    },
+    search: state.search,
+    searchFields: ['name', 'description', 'category'],
+    sort: state.sort === 'popular'
+      ? { field: 'name', dir: 'asc' }
+      : { field: sortField, dir: sortDir },
+  });
+
+  if (state.sort === 'popular') {
+    products = [...products].sort((a, b) =>
+      (b.tags.includes('bestseller') || b.tags.includes('popular') ? 1 : 0) -
+      (a.tags.includes('bestseller') || a.tags.includes('popular') ? 1 : 0)
+    );
+  }
+  return products;
+}
+
+// ── Render grid ───────────────────────────────────────────
+function render() {
+  const all = getFiltered();
+  const paged = BB.query.paginate(all, state.page, state.pageSize);
+
+  document.getElementById('resultCount').textContent =
+    `${all.length} item${all.length !== 1 ? 's' : ''} found`;
+
+  const grid = document.getElementById('productsGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (!all.length) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    grid.innerHTML = paged.records.map(p => productCard(p)).join('');
+  }
+
+  renderPagination(paged);
+  renderActiveFilters();
+}
+
+function productCard(p) {
+  const cat    = lookups.categories.find(c => c.id === p.category);
+  const imgUrl = BB.images.getProductImage(p);
+  const tagHtml = p.tags.includes('bestseller')
+    ? '<span class="product-tag tag-bestseller">⭐ Bestseller</span>'
+    : p.tags.includes('popular')
+      ? '<span class="product-tag tag-popular">🔥 Popular</span>'
+      : p.tags.includes('custom')
+        ? '<span class="product-tag tag-custom">✨ Custom</span>'
+        : '';
+  return `
+  <div class="product-card fade-in">
+    <div class="product-img loading" style="background:${cat?.gradient || '#f9f0f4'};cursor:pointer" onclick="quickView('${p.id}')">
+      ${imgUrl ? `<img src="${imgUrl}" alt="${p.name}" loading="lazy"
+          onload="this.classList.add('loaded');this.parentElement.classList.remove('loading')"
+          onerror="this.remove();this.parentElement.classList.remove('loading')" />` : ''}
+      <span class="emoji">${cat?.icon || '🍰'}</span>
+    </div>
+    <button class="product-wishlist" title="Add to wishlist" onclick="this.classList.toggle('active')">♡</button>
+    <div class="product-body">
+      <div class="product-name">${p.name}</div>
+      <div class="product-desc">${p.description}</div>
+      <div class="product-footer">
+        <span class="product-price">${utils.formatPrice(p.price, settings.currency)}</span>
+        ${tagHtml}
+      </div>
+      <button class="btn btn-primary w-full mt-2" onclick="addToCart('${p.id}')">Add to Cart 🛒</button>
+    </div>
+  </div>`;
+}
+
+// ── Pagination ────────────────────────────────────────────
+function renderPagination({ totalPages, page, hasPrev, hasNext }) {
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button class="btn btn-outline btn-sm" ${!hasPrev?'disabled':''} onclick="goPage(${page-1})">← Prev</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="btn ${i===page?'btn-primary':'btn-ghost'} btn-sm" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="btn btn-outline btn-sm" ${!hasNext?'disabled':''} onclick="goPage(${page+1})">Next →</button>`;
+  el.innerHTML = html;
+}
+function goPage(n) { state.page = n; render(); window.scrollTo({top:200,behavior:'smooth'}); }
+
+// ── Active filter chips ────────────────────────────────────
+function renderActiveFilters() {
+  const el = document.getElementById('activeFilters');
+  const chips = [];
+  if (state.cat) {
+    const c = lookups.categories.find(x => x.id === state.cat);
+    chips.push(`<span class="product-tag tag-bestseller" style="cursor:pointer;padding:.3rem .75rem" onclick="clearCat()">
+      ${c?.icon} ${c?.label} ✕</span>`);
+  }
+  if (state.search) {
+    chips.push(`<span class="product-tag tag-popular" style="cursor:pointer;padding:.3rem .75rem" onclick="clearSearch()">
+      🔍 "${state.search}" ✕</span>`);
+  }
+  el.innerHTML = chips.join('');
+}
+function clearCat()    { state.cat=''; state.page=1; document.querySelectorAll('.filter-tab').forEach(b=>b.classList.toggle('active',b.dataset.cat==='')); render(); }
+function clearSearch() { state.search=''; state.page=1; document.getElementById('searchInput').value=''; render(); }
+
+// ── Add to cart ────────────────────────────────────────────
+function addToCart(id) {
+  const p = repos.products.getById(id);
+  if (!p) return;
+  services.cart.add(p, 1);
+  BB.toast.success(`${p.name} added to cart! <a href="./cart.html" style="color:inherit;font-weight:700;text-decoration:underline">View Cart →</a>`);
+}
+
+// ── Quick View Modal ───────────────────────────────────────
+function quickView(id) {
+  const p = repos.products.getById(id);
+  if (!p) return;
+  const cat    = lookups.categories.find(c => c.id === p.category);
+  const imgUrl = BB.images.getProductImage(p);
+  document.getElementById('qvTitle').textContent = p.name;
+  document.getElementById('qvBody').innerHTML = `
+    <div style="background:${cat?.gradient||'#f9f0f4'};border-radius:var(--radius-lg);height:200px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:1.25rem;overflow:hidden;position:relative">
+      ${imgUrl ? `<img src="${imgUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s" onload="this.style.opacity=1" onerror="this.remove()" />` : ''}
+      <span style="position:relative;z-index:1">${cat?.icon||'🍰'}</span>
+    </div>
+    <div class="text-muted text-sm mb-1">${cat?.label||''}</div>
+    <p style="margin-bottom:1rem;line-height:1.7">${p.description}</p>
+    <div class="flex-between mb-3">
+      <span style="font-size:1.5rem;font-weight:800;color:var(--primary)">${utils.formatPrice(p.price, settings.currency)}</span>
+      <div class="flex gap-1 align-items-center">
+        <button class="btn btn-ghost btn-icon" onclick="changeQv(-1)">−</button>
+        <span id="qvQty" style="font-weight:700;min-width:1.5rem;text-align:center">1</span>
+        <button class="btn btn-ghost btn-icon" onclick="changeQv(1)">+</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Special Instructions (optional)</label>
+      <textarea id="qvNotes" class="form-control" rows="2" placeholder="E.g. Less sugar, extra frosting…"></textarea>
+    </div>
+    <button class="btn btn-primary w-full btn-lg" onclick="addToCartFromModal('${p.id}')">Add to Cart 🛒</button>
+  `;
+  document.getElementById('quickViewModal').classList.add('open');
+  // Store current product ref
+  document.getElementById('quickViewModal').dataset.pid = id;
+}
+function closeModal() { document.getElementById('quickViewModal').classList.remove('open'); }
+function changeQv(d) {
+  const el = document.getElementById('qvQty');
+  el.textContent = Math.max(1, parseInt(el.textContent) + d);
+}
+function addToCartFromModal(id) {
+  const p = repos.products.getById(id);
+  const qty = parseInt(document.getElementById('qvQty')?.textContent || 1);
+  const notes = document.getElementById('qvNotes')?.value || '';
+  services.cart.add(p, qty, notes);
+  BB.toast.success(`${p.name} × ${qty} added!`);
+  closeModal();
+}
+// Close modal on backdrop click
+document.getElementById('quickViewModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ── Event Listeners ────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', e => {
+  state.search = e.target.value.trim();
+  state.page = 1;
+  render();
+});
+document.getElementById('sortSelect').addEventListener('change', e => {
+  state.sort = e.target.value;
+  state.page = 1;
+  render();
+});
+buildCatTabs();
+render();
+</script>
+</body>
+</html>
